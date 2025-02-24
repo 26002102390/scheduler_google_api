@@ -1,0 +1,2 @@
+teacher_id,teacher_name,desired_shift_count,min_classes,teachable_subjects
+T1,天満亮太,20,2,ES_English|MS_English|HS_English|HS_Math2B|HS_Math2B|HS_Math3C|HS_Japanese|HS_ChemistryBasic|HS_Geology

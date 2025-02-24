@@ -1,0 +1,3 @@
+teacher_id,teacher_name,desired_shift_count,min_classes,teachable_subjects
+T1,佐藤,10,1,"ES_Japanese|ES_Math"
+

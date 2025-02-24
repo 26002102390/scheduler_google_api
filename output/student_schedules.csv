@@ -1,0 +1,5 @@
+﻿student_id,student_name,timeslot_id,date,period_index,period_label,subject_id,subject_name,teacher_id,teacher_name
+S1,山田太郎,TS1,2025-08-01,1,1限,ES_Math,算数,T1,佐藤
+S1,山田太郎,TS3,2025-08-01,3,3限,ES_Math,算数,T1,佐藤
+S1,山田太郎,TS4,2025-08-02,1,1限,ES_Japanese,国語,T1,佐藤
+S1,山田太郎,TS5,2025-08-02,2,2限,ES_Japanese,国語,T1,佐藤

@@ -1,0 +1,9 @@
+student_id,student_name,subject_id,required_count
+S1,清水あきら,MS_English,1
+S1,清水あきら,MS_Math,2
+S1,清水あきら,MS_Japanese,3
+S1,清水あきら,MS_Science,3
+S1,清水あきら,MS_Social,3
+S2,今治亮平,HS_Math2B,3
+S2,今治亮平,HS_Math2B,3
+S2,今治亮平,HS_Math3C,3

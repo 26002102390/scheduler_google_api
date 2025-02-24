@@ -1,0 +1,7 @@
+key,value
+maxTwoStudentsBonus,10
+sameGradeBonus,5
+regularClassContinuityBonus,8
+teacherGapPenalty,2
+studentGapPenalty,2
+singleStudentPenalty,4

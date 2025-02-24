@@ -1,0 +1,3 @@
+regular_class_id,teacher_id,teacher_name,subject_id,subject_name,timeslot_id,enrolled_student_ids
+RC1,T1,佐藤,ES_Japanese,国語,TS2,S1
+
