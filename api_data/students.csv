@@ -1,3 +1,3 @@
 student_id,student_name,grade,gap_preference
-S1,清水あきら,Middle2,NoGapPreferred
-S2,今治亮平,High3,GapAllowed
+S1,清水あきら,Middle2,GapAllowed
+S2,池田大輔,Middle3,GapAllowed

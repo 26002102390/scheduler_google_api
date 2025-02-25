@@ -1,2 +1,4 @@
 teacher_id,teacher_name,desired_shift_count,min_classes,teachable_subjects
 T1,天満亮太,20,2,ES_English|MS_English|HS_English|HS_Math2B|HS_Math2B|HS_Math3C|HS_Japanese|HS_ChemistryBasic|HS_Geology
+T2,四日市亮平,20,2,ES_Math|MS_Math|HS_Math2B|HS_Math2B|HS_Math3C|ES_Science|MS_Science|HS_ChemistryBasic|HS_Chemistry|HS_PhysicsBasic|HS_Physics
+T3,興梠傭兵,20,2,ES_English|MS_English|HS_English|ES_Japanese|MS_Japanese|HS_Japanese|HS_ChemistryBasic|HS_Chemistry|HS_PhysicsBasic|HS_Physics|HS_BiologyBasic|HS_Biology|HS_GeologyBasic|HS_Geology|ES_Social|MS_Social|HS_Geography|HS_JapaneseHistory|HS_WorldHistory|HS_Ethics|HS_PoliticsEconomy

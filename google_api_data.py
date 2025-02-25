@@ -18,7 +18,7 @@ client = gspread.authorize(creds)
 
 # ⑤ スプレッドシートを開く
 SPREADSHEET_URL_teacher = "https://docs.google.com/spreadsheets/d/1xKQcSv2R3KhkD3oSbymHrW8YR21CvlphIyFoUu4Ji94/edit"
-SPREADSHEET_URL_student = "https://docs.google.com/spreadsheets/d/1Pggs62VJPSQTQhMW2YxiYcWqzju3T0uBo7g3hreVAiI/edit"
+SPREADSHEET_URL_student = "https://docs.google.com/spreadsheets/d/1gSj43cZJRVierQkN8sQU1hVCMSLsMEspc4rRf1jpjYQ/edit"
 SPREADSHEET_ID_teacher = SPREADSHEET_URL_teacher.split('/')[5]
 SPREADSHEET_ID_student = SPREADSHEET_URL_student.split('/')[5]
 
@@ -488,7 +488,7 @@ print("Student availability CSV generated successfully!")
 # ------------------------------------------------------------
 # regular_classes.csvデータの生成
 # ------------------------------------------------------------
-def generate_regular_classes_csv(teachers_dict):
+def generate_regular_classes_csv(teachers_dict, teachers_data, timeslot_data, students_csv):
     """通常授業データをCSV形式に変換する関数"""
     regular_classes = []
     
@@ -498,57 +498,128 @@ def generate_regular_classes_csv(teachers_dict):
     
     # 科目名とsubject_idの対応マップ
     subject_mapping = {
-        "英語（小学生）": ("ES_English", "英語"),
-        "算数（小学生）": ("ES_Math", "算数"),
         "国語（小学生）": ("ES_Japanese", "国語"),
+        "算数（小学生）": ("ES_Math", "算数"),
         "理科（小学生）": ("ES_Science", "理科"),
         "社会（小学生）": ("ES_Social", "社会"),
+        "英語（小学生）": ("ES_English", "英語"),
         
-        "英語（中学生）": ("MS_English", "英語"),
-        "数学（中学生）": ("MS_Math", "数学"),
         "国語（中学生）": ("MS_Japanese", "国語"),
+        "数学（中学生）": ("MS_Math", "数学"),
         "理科（中学生）": ("MS_Science", "理科"),
         "社会（中学生）": ("MS_Social", "社会"),
+        "英語（中学生）": ("MS_English", "英語"),
         
-        "英語（高校生）": ("HS_English", "英語"),
+        "国語（高校生）": ("HS_Japanese", "国語"),
         "数学ⅠA（高校生）": ("HS_Math2B", "数学ⅠA"),
         "数学ⅡB（高校生）": ("HS_Math2B", "数学ⅡB"),
         "数学ⅢC（高校生）": ("HS_Math3C", "数学ⅢC"),
-        "国語（高校生）": ("HS_Japanese", "国語"),
-        # ... 他の科目も同様に追加
+        "英語（高校生）": ("HS_English", "英語"),
+        "物理基礎（高校生）": ("HS_PhysicsBasic", "物理基礎"),
+        "物理（高校生）": ("HS_Physics", "物理"),
+        "化学基礎（高校生）": ("HS_ChemistryBasic", "化学基礎"),
+        "化学（高校生）": ("HS_Chemistry", "化学"),
+        "生物基礎（高校生）": ("HS_BiologyBasic", "生物基礎"),
+        "生物（高校生）": ("HS_Biology", "生物"),
+        "地学基礎（高校生）": ("HS_GeologyBasic", "地学基礎"),
+        "地学（高校生）": ("HS_Geology", "地学"),
+        "世界史（高校生）": ("HS_WorldHistory", "世界史"),
+        "日本史（高校生）": ("HS_JapaneseHistory", "日本史"),
+        "地理（高校生）": ("HS_Geography", "地理"),
+        "倫理（高校生）": ("HS_Ethics", "倫理"),
+        "政経（高校生）": ("HS_PoliticsEconomy", "政経")
     }
     
+    # 教師IDの辞書を作成
+    teacher_id_dict = {row[1]: row[0] for row in teachers_data[1:]}
+    
+    # 生徒名とIDの対応辞書を作成
+    student_id_dict = {row[1]: row[0] for row in students_csv[1:]}
+    
+    # 曜日と日付の対応を作成
+    weekday_dates = {}
+    for header in teachers_dict[list(teachers_dict.keys())[0]].keys():
+        if header.startswith('シフト'):
+            date_info = header.split('[')[1].split(']')[0]
+            if '（' in date_info:
+                date, weekday = date_info.split('（')
+                weekday = weekday.replace('）', '')
+                month, day = date.split('/')
+                formatted_date = f"2025-{month.zfill(2)}-{day.zfill(2)}"
+                weekday_dates[weekday + '曜日'] = formatted_date
+    
     class_id = 1
+    errors = []  # エラーを記録するリスト
+    
     for teacher_name, info in teachers_dict.items():
-        # 担当授業の情報を処理
-        for i in range(1, 4):  # 授業1から授業3まで処理
+        teacher_id = teacher_id_dict.get(teacher_name)
+        if not teacher_id:
+            continue
+            
+        for i in range(1, 7):
             student_name = info.get(f'担当生徒名{i}')
             subject = info.get(f'授業{i}')
-            day = info.get(f'授業日{i}')
+            weekday = info.get(f'授業日{i}')
             period = info.get(f'授業時間{i}')
             
-            if student_name and subject and day and period:
-                # subject_idとsubject_nameを取得
-                subject_info = subject_mapping.get(subject)
-                if subject_info:
-                    subject_id, subject_name = subject_info
+            if all([student_name, subject, weekday, period]):
+                # 生徒IDの取得
+                student_id = student_id_dict.get(student_name)
+                if not student_id:
+                    errors.append(f"エラー: 生徒「{student_name}」が students.csv に見つかりません。"
+                                f"（教師: {teacher_name}, 授業{i}）")
+                    continue
+                
+                # 曜日から対応する日付を取得
+                formatted_date = weekday_dates.get(weekday)
+                if not formatted_date:
+                    errors.append(f"エラー: 曜日「{weekday}」に対応する日付が見つかりません。"
+                                f"（教師: {teacher_name}, 授業{i}）")
+                    continue
+                
+                # timeslot_idを取得
+                period_label = f"{period}"
+                timeslot_id = next(
+                    (row[0] for row in timeslot_data[1:] 
+                     if row[1] == formatted_date and row[4] == period_label),
+                    None
+                )
+                
+                if not timeslot_id:
+                    errors.append(f"エラー: タイムスロットが見つかりません。"
+                                f"（日付: {formatted_date}, 時限: {period_label}, "
+                                f"教師: {teacher_name}, 授業{i}）")
+                    continue
+                
+                if subject in subject_mapping:
+                    subject_id, subject_name = subject_mapping[subject]
                     
                     row = [
-                        f'RC{class_id}',          # regular_class_id
-                        f'T{class_id}',           # teacher_id（仮のID）
-                        teacher_name,             # teacher_name
-                        subject_id,               # subject_id
-                        subject_name,             # subject_name
-                        f'TS{class_id}',          # timeslot_id（仮のID）
-                        f'S{class_id}'            # enrolled_student_ids（仮のID）
+                        f'RC{class_id}',
+                        teacher_id,
+                        teacher_name,
+                        subject_id,
+                        subject_name,
+                        timeslot_id,
+                        student_id  # 生徒IDを使用
                     ]
                     regular_classes.append(row)
                     class_id += 1
+                else:
+                    errors.append(f"エラー: 科目「{subject}」が subject_mapping に見つかりません。"
+                                f"（教師: {teacher_name}, 授業{i}）")
+    
+    # エラーがある場合は出力
+    if errors:
+        print("\n=== 正規授業データ生成時のエラー ===")
+        for error in errors:
+            print(error)
+        print("================================\n")
     
     return regular_classes
 
-# CSVデータを生成
-regular_classes_csv = generate_regular_classes_csv(teachers_dict)
+# CSVデータを生成（students_csvを引数として追加）
+regular_classes_csv = generate_regular_classes_csv(teachers_dict, teachers_data, timeslot_data, students_csv)
 
 # CSVファイルとして保存
 import csv

@@ -5,7 +5,7 @@ import os
 
 LOG_LEVEL = logging.INFO
 
-DATA_DIR = "data"
+DATA_DIR = "./api_data"
 OUTPUT_DIR = "output"
 
 SUBJECTS_CSV = os.path.join(DATA_DIR, "subjects.csv")

@@ -1,2 +1,4 @@
 regular_class_id,teacher_id,teacher_name,subject_id,subject_name,timeslot_id,enrolled_student_ids
-RC1,T1,天満亮太,MS_English,英語,TS1,S1
+RC1,T1,天満亮太,MS_English,英語,TS4,S2
+RC2,T2,四日市亮平,MS_Math,数学,TS4,S1
+RC3,T3,興梠傭兵,MS_Science,理科,TS8,S1
