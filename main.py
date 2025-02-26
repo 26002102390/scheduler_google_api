@@ -156,6 +156,30 @@ def export_shifts_by_student(shifts, output_path):
 
     logging.info(f"Student-based schedule exported to {output_path}")
 
+def export_shortage_csv(shortage_result, students, subjects, output_path):
+    """
+    不足コマをCSVに出力 (1行=1つの(生徒,科目)で不足がある場合)
+    表形式: student_id, student_name, subject_id, subject_name, shortage_count
+    """
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+    with open(output_path, "w", encoding="utf-8-sig", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            "student_id",
+            "student_name",
+            "subject_id",
+            "subject_name",
+            "shortage_count"
+        ])
+        for (s_id, subj_id), shortage_val in shortage_result.items():
+            if shortage_val > 0:
+                s_name = students[s_id].student_name
+                sbj_name = subjects[subj_id].subject_name if subj_id in subjects else subj_id
+                writer.writerow([s_id, s_name, subj_id, sbj_name, shortage_val])
+
+    logging.info(f"Shortage info exported to {output_path}")
+
 
 def main():
     setup_logging()
@@ -202,7 +226,7 @@ def main():
         logging.error(f"Campaign {campaign_id} not found.")
         sys.exit(1)
 
-    result_shifts = solve_shifts(
+    result_shifts, shortage_dict = solve_shifts(
         teachers=teachers,
         students=students,
         timeslots=timeslots,
@@ -213,13 +237,14 @@ def main():
         constraint_weights=constraint_weights
     )
 
-    if not result_shifts:
-        logging.warning("No shifts assigned.")
+    if not result_shifts and not shortage_dict:
+        logging.warning("No shifts assigned or no feasible solution.")
         return
 
     # 出力ファイル
     teacher_csv_path = os.path.join(OUTPUT_DIR, "teacher_schedules.csv")
     student_csv_path = os.path.join(OUTPUT_DIR, "student_schedules.csv")
+    shortage_csv_path = os.path.join(OUTPUT_DIR, "shortage.csv")
 
     # 教師ごとCSV
     export_shifts_by_teacher(result_shifts, teacher_csv_path)
@@ -227,6 +252,8 @@ def main():
     # 生徒ごとCSV
     export_shifts_by_student(result_shifts, student_csv_path)
 
+    # 3) 不足コマCSV (表形式)
+    export_shortage_csv(shortage_dict, students, subjects, shortage_csv_path)
 
 if __name__ == "__main__":
     main()
