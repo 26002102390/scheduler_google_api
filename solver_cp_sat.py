@@ -94,6 +94,14 @@ def solve_shifts(teachers: Dict[str, Teacher],
             if req_num > 0:
                 short_var = model.NewIntVar(0, req_num, f"short_{s_id}_{sbj_id}")
                 shortage[(s_id, sbj_id)] = short_var
+    
+    # 1-6) 教師 "desired_shift_count" に近づけるための over[t], under[t]
+    # sum_x_t[t] - desired[t] = over[t] - under[t]
+    over = {}
+    under = {}
+    for t_id, t_obj in teachers.items():
+        over[t_id] = model.NewIntVar(0, bigM, f"over_{t_id}")
+        under[t_id] = model.NewIntVar(0, bigM, f"under_{t_id}")
 
     # --------------------------------------
     # 2) ハード制約 (Constraints)
@@ -112,6 +120,10 @@ def solve_shifts(teachers: Dict[str, Teacher],
         model.Add(sum_x_t[t_id] == 0).OnlyEnforceIf(teacher_present[t_id].Not())
         # 出勤なら最低コマ数
         model.Add(sum_x_t[t_id] >= teachers[t_id].min_classes).OnlyEnforceIf(teacher_present[t_id])
+        
+        # sum_x_t[t_id] - desired_shift_count = over[t_id] - under[t_id]
+        desired = t_obj.desired_shift_count
+        model.Add(sum_x_t[t_id] - desired == over[t_id] - under[t_id])
 
     # 2-2) 同一Timeslotで生徒重複NG
     for ts in target_timeslots:
@@ -156,11 +168,16 @@ def solve_shifts(teachers: Dict[str, Teacher],
     studentGapPenalty = constraint_weights.get("studentGapPenalty", 0)
     singleStudentPenalty = constraint_weights.get("singleStudentPenalty", 0)
     shortagePenalty = constraint_weights.get("shortagePenalty", 0)
+    teacherDesiredPenalty = constraint_weights.get("teacherDesiredPenalty", 0)
     
     # 3-1) 生徒不足コマペナルティ
     for (s_id, sbj_id), short_var in shortage.items():
         # shortageが1増えるたびにマイナス
         obj_terms.append(short_var * (-shortagePenalty))
+    
+    # 3-2) 教師 desired_shift_count ずれペナルティ: (over[t]+under[t]) * -teacherDesiredPenalty
+    for t_id, t_obj in teachers.items():
+        obj_terms.append((over[t_id] + under[t_id]) * (-teacherDesiredPenalty))
 
     # 3-2) 同一Teacher-Timeslotで 2対1 vs 1対1
     # cvar[t_id,ts_id] => # of assigned students(0..2)
